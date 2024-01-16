@@ -10,6 +10,7 @@ import router from "../app/Router.js";
 import { ROUTES_PATH} from "../constants/routes.js";
 import Bills from "../views/BillsUI.js"
 import mockStore from "../__mocks__/store"
+import { ROUTES } from "../constants/routes"
 
 
 describe("Given I am connected as an employee", () => {
@@ -43,22 +44,23 @@ describe("Given I am connected as an employee", () => {
     })*/
     describe("When I submit a filled form", () => {
       test("Then I should be redirected on Bills page", async () => {
-      const onNavigate = jest.fn()
+      const onNavigate = (pathname) => {
+        document.body.innerHTML = ROUTES({ pathname })
+      }
       Object.defineProperty(window, 'localStorage', { value: localStorageMock })
       window.localStorage.setItem('user', JSON.stringify({
         type: 'employee'
       }))
-      
-      const newBill = new NewBill({ document, onNavigate, store: mockStore, localStorage: window.localStorage })
-      
       const html = NewBillUI()
       document.body.innerHTML = html
 
+      const newBill = new NewBill({ document, onNavigate, store: mockStore, localStorage: window.localStorage })
+      
       const inputDate = screen.getByTestId("datepicker")
       const date = new Date()
-      console.log(inputDate)
-      await waitFor( () => fireEvent.change(inputDate, { target: { value: date } }))
-      expect(inputDate.value).toBe(date)
+      const dateString = date.toISOString().split('T')[0];
+      await waitFor( () => fireEvent.change(inputDate, { target: { value: dateString } }))
+      expect(inputDate.value).toBe(dateString)
       const inputAmount = screen.getByTestId("amount")
       fireEvent.change(inputAmount, { target: { value: "150" } })
       expect(inputAmount.value).toBe("150")
@@ -66,16 +68,19 @@ describe("Given I am connected as an employee", () => {
       fireEvent.change(inputPct, { target: { value: "20" } })
       expect(inputPct.value).toBe("20")
       const inputFile = screen.getByTestId("file")
-      fireEvent.change(inputFile, { target: { value: "test.png" } })
-      expect(inputFile.value).toBe("test.png")
+      fireEvent.change(inputFile, { target: { value: "" } })
+      expect(inputFile.value).toBe("")
 
       const form = screen.getByTestId("form-new-bill")
-      const handleSubmit = jest.fn((e) => e.preventDefault())
+      const handleSubmit = jest.fn(newBill.handleSubmit)
 
-      form.addEventListener("submit", handleSubmit)
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        handleSubmit(e);
+      });
       fireEvent.submit(form)
       expect(handleSubmit).toHaveBeenCalled()
-      expect(onNavigate).toHaveBeenCalled()
+      expect(screen.getByText('Mes notes de frais')).toBeTruthy()
       })
     })
   })

@@ -35,15 +35,29 @@ describe("Given I am connected as an employee", () => {
       const mailIcon = screen.getByTestId('icon-mail')
       expect(mailIcon.classList.contains('active-icon')).toBe(true)
     })
-    /*describe("When I submit an empty form", () => {
-      test("Then I should receive an error", () => {
+    describe("When I submit an empty form", () => {
+      test("Then I should not be redirected to Bills page", async () => {
+        const onNavigate = (pathname) => {
+          document.body.innerHTML = ROUTES({ pathname })
+        }
+        Object.defineProperty(window, 'localStorage', { value: localStorageMock })
+        window.localStorage.setItem('user', JSON.stringify({
+          type: 'employee'
+        }))
         const html = NewBillUI()
         document.body.innerHTML = html
-        
+    
+        const form = screen.getByTestId("form-new-bill")
+        form.noValidate = true;
+  
+        fireEvent.submit(form)
+        waitFor(() => {
+          expect(onNavigate).not.toHaveBeenCalled();
+        });      
       })
-    })*/
+    })
     describe("When I submit a filled form", () => {
-      test("Then I should be redirected on Bills page", async () => {
+      test("Then I should be redirected to Bills page", async () => {
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname })
       }

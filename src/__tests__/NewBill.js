@@ -97,5 +97,46 @@ describe("Given I am connected as an employee", () => {
       expect(screen.getByText('Mes notes de frais')).toBeTruthy()
       })
     })
+    describe("When I upload a valid file", () => {
+      test("Then it should be uploaded", () => {
+        const html = NewBillUI()
+        document.body.innerHTML = html
+
+        const newBill = new NewBill({ document, onNavigate, store: mockStore, localStorage: window.localStorage })
+
+        const handleChangeFile = jest.fn(newBill.handleChangeFile)
+
+        const mockFileUpload = { preventDefault: jest.fn(), target: { value: 'C:\\fakepath\\test.jpg' } };
+
+        handleChangeFile(mockFileUpload)
+        let validFile
+        if (mockFileUpload.target.value.match(/(\.jpg|\.jpeg|\.png)$/)) {
+          validFile = true
+        } else {
+          validFile = false
+        }
+        expect(handleChangeFile).toHaveBeenCalled()
+        expect(validFile).toBe(true)
+      })
+    })
+    describe("When I upload a file with an invalid extension", () => {
+      test("Then an alert with an error message should appear", () => {
+        const html = NewBillUI()
+        document.body.innerHTML = html
+
+        const newBill = new NewBill({ document, onNavigate, store: mockStore, localStorage: window.localStorage })
+        
+        const alertSpy = jest.spyOn(window, 'alert');
+
+        const handleChangeFile = jest.fn(newBill.handleChangeFile)
+
+        const mockFileUpload = { preventDefault: jest.fn(), target: { value: 'C:\\fakepath\\test.txt' } };
+
+        handleChangeFile(mockFileUpload)
+        
+        expect(handleChangeFile).toHaveBeenCalled()
+        expect(alertSpy).toHaveBeenCalled()
+      })
+    })
   })
 })

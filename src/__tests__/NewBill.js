@@ -98,7 +98,7 @@ describe("Given I am connected as an employee", () => {
       })
     })
     describe("When I upload a valid file", () => {
-      test("Then it should be uploaded", () => {
+      test("Then it should be uploaded", async () => {
         const html = NewBillUI()
         document.body.innerHTML = html
 
@@ -106,17 +106,22 @@ describe("Given I am connected as an employee", () => {
 
         const handleChangeFile = jest.fn(newBill.handleChangeFile)
 
-        const mockFileUpload = { preventDefault: jest.fn(), target: { value: 'C:\\fakepath\\test.jpg' } };
+        const mockBills = mockStore.bills()
+        const spyCreate = jest.spyOn(mockBills, "create")
+
+        const mockFileUpload = { preventDefault: jest.fn(), target: { value: "https://localhost:3456/images/test.jpg" } };
+        const billInfos = {
+          email: "a@a",
+          fileUrl: "https://localhost:3456/images/test.jpg",
+          fileName: "test.jpg"
+        }
+        const billCreated = await spyCreate(billInfos)
 
         handleChangeFile(mockFileUpload)
-        let validFile
-        if (mockFileUpload.target.value.match(/(\.jpg|\.jpeg|\.png)$/)) {
-          validFile = true
-        } else {
-          validFile = false
-        }
+
         expect(handleChangeFile).toHaveBeenCalled()
-        expect(validFile).toBe(true)
+        expect(spyCreate).toHaveBeenCalled()
+        expect(billCreated.fileUrl).toBe("https://localhost:3456/images/test.jpg")
       })
     })
     describe("When I upload a file with an invalid extension", () => {
@@ -139,4 +144,40 @@ describe("Given I am connected as an employee", () => {
       })
     })
   })
+  // Test POST bill
+  describe("When I post a new bill", () => {
+    test("Then it adds the bill to mock API POST", async () => {
+      localStorage.setItem("user", JSON.stringify({ type: "employee", email: "a@a" }));
+
+      const newBill = new NewBill({ document, onNavigate, store: mockStore, localStorage: window.localStorage })
+
+      const updateBill = jest.fn(newBill.updateBill)
+      const mockBills = mockStore.bills()
+      const spyUpdate = jest.spyOn(mockBills, "update")
+
+      const bill = {
+        "id": "47qAXb6fIm2zOKkLzMro",
+        "vat": "80",
+        "fileUrl": "https://test.storage.tld/v0/b/billable-677b6.a…f-1.jpg?alt=media&token=c1640e12-a24b-4b11-ae52-529112e9602a",
+        "status": "accepted",
+        "type": "Hôtel et logement",
+        "commentAdmin": "ok",
+        "commentary": "séminaire billed",
+        "name": "encore",
+        "fileName": "preview-facture-free-201801-pdf-1.jpg",
+        "date": "2004-04-04",
+        "amount": 400,
+        "email": "a@a",
+        "pct": 20
+      }
+      const billUpdated = await spyUpdate(bill)
+
+      updateBill(bill)
+
+      expect(updateBill).toHaveBeenCalled()
+      expect(spyUpdate).toHaveBeenCalled()
+      expect(billUpdated.id).toBe("47qAXb6fIm2zOKkLzMro")
+    })
+  })
 })
+

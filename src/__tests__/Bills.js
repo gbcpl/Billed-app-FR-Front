@@ -41,6 +41,7 @@ describe("Given I am connected as an employee", () => {
     })
     describe("When I click on eye icon", () => {
       test("Then a modal should appear", () => {
+        $.fn.modal = jest.fn()
         Object.defineProperty(window, 'localStorage', { value: localStorageMock })
         window.localStorage.setItem('user', JSON.stringify({
           type: 'Employee'
@@ -70,6 +71,7 @@ describe("Given I am connected as an employee", () => {
   })
 })
 
+// Test GET Bills
 describe("Given I am a user connected as employee", () => {
   describe("When I navigate to Bills", () => {
     test("fetches bills from mock API GET", async () => {
